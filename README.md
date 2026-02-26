@@ -1,20 +1,34 @@
-# Claude History Cloud
+# ClaudeHistory Cloud
 
-Multi-user SaaS backend for [ClaudeHistoryMCP](https://github.com/jhammant/claude-history-mcp). Provides cloud sync, team knowledge sharing, and federated community patterns.
+> The sync and collaboration server for [ClaudeHistoryMCP](https://github.com/jhammant/claude-history-mcp).
+
+Self-host for free, or use our managed version at [claudehistory.com](https://claudehistory.com).
+
+## Quick Start (Self-Host)
+
+```bash
+git clone https://github.com/jhammant/claude-history-cloud
+cd claude-history-cloud
+cp .env.example .env
+# Edit .env with your settings
+docker compose up -d
+```
+
+This starts PostgreSQL + the API server on port 3000.
 
 ## Features
 
-- **Auth**: Email/password registration, JWT tokens (7-day expiry), API key access
-- **Knowledge CRUD**: Create, read, update, delete knowledge entries with full-text search
-- **Session Summaries**: Push/pull session summaries across machines
-- **Teams**: Create teams, invite members, share knowledge within teams
-- **Cloud Sync**: Push/pull endpoints for the MCP sync client
-- **Federation**: Anonymous community pattern sharing with k-anonymity
-- **Usage Tracking**: Per-user stats and tier-based limits
+- **User auth** — JWT + API key authentication
+- **Team management** — Create teams, invite members, shared knowledge
+- **Knowledge sync** — Push/pull knowledge entries and session summaries
+- **Federated hub** — Community pattern sharing with k-anonymity
+- **Usage tracking** — Per-user/team usage stats and tier-based limits
+- **Self-host ready** — Docker Compose, works anywhere
 
-## API
+## API Reference
 
 ### Auth
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/auth/register` | Register with email + password |
@@ -23,6 +37,7 @@ Multi-user SaaS backend for [ClaudeHistoryMCP](https://github.com/jhammant/claud
 | GET | `/api/auth/me` | Get current user info |
 
 ### Knowledge
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/knowledge` | Create knowledge entry |
@@ -33,6 +48,7 @@ Multi-user SaaS backend for [ClaudeHistoryMCP](https://github.com/jhammant/claud
 | DELETE | `/api/knowledge/:id` | Delete entry |
 
 ### Sessions
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/sessions` | Push session summary |
@@ -40,6 +56,7 @@ Multi-user SaaS backend for [ClaudeHistoryMCP](https://github.com/jhammant/claud
 | GET | `/api/sessions/:sessionId` | Get single summary |
 
 ### Teams
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/teams` | Create team |
@@ -49,6 +66,7 @@ Multi-user SaaS backend for [ClaudeHistoryMCP](https://github.com/jhammant/claud
 | DELETE | `/api/teams/:id/members/:userId` | Remove member |
 
 ### Sync (for MCP client)
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/sync/push/knowledge` | Bulk push knowledge entries |
@@ -57,6 +75,7 @@ Multi-user SaaS backend for [ClaudeHistoryMCP](https://github.com/jhammant/claud
 | GET | `/api/sync/pull/sessions` | Pull sessions (with `?since=` timestamp) |
 
 ### Federation
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/federation/contribute` | Submit anonymous patterns |
@@ -65,47 +84,18 @@ Multi-user SaaS backend for [ClaudeHistoryMCP](https://github.com/jhammant/claud
 | GET | `/api/federation/stats` | Community statistics |
 
 ### Usage
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/usage` | Get usage stats + tier limits |
 
-## Setup
+### Authentication
 
-### Docker (recommended)
-
-```bash
-cp .env.example .env
-# Edit .env with your JWT_SECRET
-docker compose up -d
-```
-
-### Manual
-
-```bash
-npm install
-# Set up PostgreSQL and run migrations
-psql $DATABASE_URL < migrations/001_initial.sql
-psql $DATABASE_URL < migrations/002_federation.sql
-npm run build
-npm start
-```
-
-### Railway
-
-Click deploy or use the Railway CLI:
-```bash
-railway up
-```
-
-## Auth
-
-All endpoints except `/health`, `/api/auth/register`, `/api/auth/login`, and `/api/federation/*` require authentication.
-
-Use either:
+All endpoints except `/health`, `/api/auth/register`, `/api/auth/login`, and `/api/federation/*` require authentication via:
 - **JWT token**: `Authorization: Bearer <jwt_token>`
 - **API key**: `Authorization: Bearer <64_char_hex_api_key>`
 
-## Tiers
+### Tiers
 
 | Tier | Knowledge Entries | Team Members | Rate Limit |
 |------|-------------------|--------------|------------|
@@ -113,6 +103,45 @@ Use either:
 | Pro | 10,000 | 0 | 120/min |
 | Team | 50,000 | 50 | 300/min |
 
+## Deployment
+
+### Docker Compose (Recommended)
+
+```bash
+docker compose up -d
+```
+
+### Railway
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/...)
+
+### Manual
+
+```bash
+npm install
+npm run build
+npm start
+```
+
+Requires PostgreSQL 15+ with pgvector extension.
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:postgres@localhost:5432/claude_history` |
+| `JWT_SECRET` | Secret for signing JWT tokens | *required* |
+| `JWT_EXPIRES_IN` | JWT token expiry | `7d` |
+| `PORT` | Server port | `3100` |
+| `NODE_ENV` | Environment (`development` / `production`) | `development` |
+| `STRIPE_SECRET_KEY` | Stripe secret key (for paid tiers) | — |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |
+| `RATE_LIMIT_WINDOW_MS` | Rate limit window in ms | `60000` |
+| `RATE_LIMIT_MAX_FREE` | Requests per window (free tier) | `30` |
+| `RATE_LIMIT_MAX_PRO` | Requests per window (pro tier) | `120` |
+| `RATE_LIMIT_MAX_TEAM` | Requests per window (team tier) | `300` |
+
 ## License
 
-Private — not open source.
+AGPL-3.0 — open source with copyleft. Self-hosting encouraged.
+See [LICENSE](LICENSE) for details.

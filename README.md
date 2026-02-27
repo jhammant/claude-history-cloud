@@ -95,14 +95,6 @@ All endpoints except `/health`, `/api/auth/register`, `/api/auth/login`, and `/a
 - **JWT token**: `Authorization: Bearer <jwt_token>`
 - **API key**: `Authorization: Bearer <64_char_hex_api_key>`
 
-### Tiers
-
-| Tier | Knowledge Entries | Team Members | Rate Limit |
-|------|-------------------|--------------|------------|
-| Free | 500 | 0 | 30/min |
-| Pro | 10,000 | 0 | 120/min |
-| Team | 50,000 | 50 | 300/min |
-
 ## Deployment
 
 ### Docker Compose (Recommended)

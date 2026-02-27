@@ -1,11 +1,12 @@
 import rateLimit from 'express-rate-limit';
 import { config } from '../config.js';
-import type { Request } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 /**
  * Basic rate limiter — uses tier from req.user if available.
+ * Disabled in test environment.
  */
-export const apiRateLimit = rateLimit({
+const limiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: (req: Request) => {
     const tier = req.user?.tier || 'free';
@@ -18,3 +19,7 @@ export const apiRateLimit = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later' },
 });
+
+export const apiRateLimit = config.nodeEnv === 'test'
+  ? (_req: Request, _res: Response, next: NextFunction) => next()
+  : limiter;

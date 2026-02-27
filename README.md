@@ -103,10 +103,6 @@ All endpoints except `/health`, `/api/auth/register`, `/api/auth/login`, and `/a
 docker compose up -d
 ```
 
-### Railway
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/...)
-
 ### Manual
 
 ```bash

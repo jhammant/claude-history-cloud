@@ -8,18 +8,23 @@
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "migrate": "tsx src/migrate.ts"
+    "migrate": "tsx src/migrate.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:db:up": "docker compose -f docker-compose.test.yml up -d --wait",
+    "test:db:down": "docker compose -f docker-compose.test.yml down",
+    "test:ci": "npm run test:db:up && npm test; npm run test:db:down"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.0",
     "stripe": "^17.0.0",
     "uuid": "^10.0.0",
-    "dotenv": "^16.4.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
@@ -29,8 +34,11 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.0",
+    "@types/supertest": "^7.2.0",
     "@types/uuid": "^10.0.0",
+    "supertest": "^7.2.2",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
   }
 }

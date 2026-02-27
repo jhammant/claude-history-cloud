@@ -155,14 +155,6 @@ curl -X POST http://localhost:3000/api/auth/api-key \
 docker compose up -d
 ```
 
-### Railway
-```bash
-railway init --name claude-history
-railway add --plugin postgresql
-railway variables set JWT_SECRET=$(openssl rand -hex 32) NODE_ENV=production
-railway up
-```
-
 ### Manual
 ```bash
 npm install

@@ -9,6 +9,8 @@ export const config = {
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY || '',
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    pricePro: process.env.STRIPE_PRICE_PRO || '',
+    priceTeam: process.env.STRIPE_PRICE_TEAM || '',
   },
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
@@ -17,8 +19,8 @@ export const config = {
     maxTeam: parseInt(process.env.RATE_LIMIT_MAX_TEAM || '300', 10),
   },
   tierLimits: {
-    free: { knowledgeEntries: 500, teamMembers: 0 },
-    pro: { knowledgeEntries: 10000, teamMembers: 0 },
-    team: { knowledgeEntries: 50000, teamMembers: 50 },
-  } as Record<string, { knowledgeEntries: number; teamMembers: number }>,
+    free: { knowledgeEntries: 500, teamMembers: 0, sessionsIndexed: 50 },
+    pro: { knowledgeEntries: 10000, teamMembers: 0, sessionsIndexed: 1000 },
+    team: { knowledgeEntries: 50000, teamMembers: 50, sessionsIndexed: 10000 },
+  } as Record<string, { knowledgeEntries: number; teamMembers: number; sessionsIndexed: number }>,
 } as const;

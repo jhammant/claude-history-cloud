@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClaudeHistory — Give Claude Code a Memory</title>
+<meta name="description" content="MCP server that gives Claude Code persistent memory. Search past sessions, find solutions, share learnings across your team.">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #e6edf3; --muted: #8b949e; --blue: #58a6ff; --green: #3fb950; --purple: #bc8cff; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: #21262d; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'SF Mono', 'Fira Code', monospace; }
+  pre { background: #21262d; border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+
+  .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero { padding: 80px 0 60px; text-align: center; }
+  .hero h1 { font-size: 48px; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
+  .hero h1 span { color: var(--blue); }
+  .hero p { font-size: 20px; color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
+  .hero-install { margin: 32px 0; }
+  .hero-install pre { display: inline-block; font-size: 16px; padding: 12px 24px; }
+
+  /* Stats */
+  .stats { display: flex; justify-content: center; gap: 48px; padding: 40px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 60px; }
+  .stat { text-align: center; }
+  .stat .num { font-size: 32px; font-weight: 800; color: var(--blue); }
+  .stat .label { font-size: 14px; color: var(--muted); }
+
+  /* Sections */
+  section { padding: 60px 0; }
+  section h2 { font-size: 32px; font-weight: 700; margin-bottom: 24px; }
+  section h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+  .feature { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .feature h3 { font-size: 18px; }
+  .feature p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+  /* How it works */
+  .flow { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 32px 0; flex-wrap: wrap; }
+  .flow-box { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; min-width: 160px; }
+  .flow-box.local { border-color: var(--green); }
+  .flow-box.cloud { border-color: var(--purple); }
+  .flow-box .icon { font-size: 28px; margin-bottom: 8px; }
+  .flow-box .label { font-weight: 600; font-size: 14px; }
+  .flow-box .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .arrow { color: var(--muted); font-size: 20px; }
+
+  /* Pricing */
+  .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 32px; }
+  .price-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 32px 24px; text-align: center; }
+  .price-card.featured { border-color: var(--blue); position: relative; }
+  .price-card.featured::before { content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--blue); color: var(--bg); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+  .price-card h3 { font-size: 20px; margin-bottom: 8px; }
+  .price-card .price { font-size: 36px; font-weight: 800; margin: 16px 0 8px; }
+  .price-card .price span { font-size: 16px; font-weight: 400; color: var(--muted); }
+  .price-card .desc { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .price-card ul { list-style: none; text-align: left; margin-bottom: 24px; }
+  .price-card li { padding: 6px 0; font-size: 14px; color: var(--muted); }
+  .price-card li::before { content: '✓ '; color: var(--green); font-weight: 700; }
+  .btn { display: inline-block; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; }
+  .btn-primary { background: var(--blue); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.9; text-decoration: none; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--blue); text-decoration: none; }
+
+  /* Privacy */
+  .privacy-layers { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; }
+  .layer { display: flex; align-items: center; gap: 16px; background: var(--card); border-radius: 12px; padding: 16px 20px; border-left: 4px solid; }
+  .layer.personal { border-color: var(--green); }
+  .layer.team { border-color: var(--blue); }
+  .layer .weight { font-size: 24px; font-weight: 800; min-width: 50px; }
+  .layer.personal .weight { color: var(--green); }
+  .layer.team .weight { color: var(--blue); }
+  .layer .info .name { font-weight: 600; }
+  .layer .info .desc { font-size: 13px; color: var(--muted); }
+
+  /* Footer */
+  footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 14px; }
+
+  /* CTA */
+  .cta { text-align: center; padding: 60px 0; }
+  .cta h2 { margin-bottom: 16px; }
+  .cta p { color: var(--muted); margin-bottom: 24px; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 32px; }
+    .features, .pricing { grid-template-columns: 1fr; }
+    .stats { gap: 24px; flex-wrap: wrap; }
+    .flow { flex-direction: column; }
+    .arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>Give Claude Code <span>a Memory</span></h1>
+    <p>Search your past sessions. Find solutions you've already built. Share learnings across your team. 100% local by default.</p>
+    <div class="hero-install">
+      <pre><code>npm i claude-history-mcp</code></pre>
+    </div>
+    <p style="font-size:14px;color:var(--muted)">Add to ~/.claude/settings.json. Restart. Done.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num">&lt;200ms</div><div class="label">Search Speed</div></div>
+    <div class="stat"><div class="num">0</div><div class="label">LLM Calls</div></div>
+    <div class="stat"><div class="num">7</div><div class="label">MCP Tools</div></div>
+    <div class="stat"><div class="num">2</div><div class="label">Dependencies</div></div>
+  </div>
+
+  <section>
+    <h2>How It Works</h2>
+    <div class="flow">
+      <div class="flow-box local">
+        <div class="icon">📁</div>
+        <div class="label">Your Session Files</div>
+        <div class="sub">~/.claude/projects/*.jsonl</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-box local">
+        <div class="icon">🔍</div>
+        <div class="label">MCP Server</div>
+        <div class="sub">BM25 + TF-IDF (local)</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-box local">
+        <div class="icon">🧠</div>
+        <div class="label">Claude Code</div>
+        <div class="sub">7 tools, auto-context</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-box cloud">
+        <div class="icon">☁️</div>
+        <div class="label">Cloud Sync</div>
+        <div class="sub">Optional, patterns only</div>
+      </div>
+    </div>
+    <p style="color:var(--muted);text-align:center;font-size:14px;">Raw conversations and source code stay on your machine. Only extracted patterns sync.</p>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <div class="features">
+      <div class="feature">
+        <h3>Hybrid Search</h3>
+        <p>BM25 + TF-IDF with Reciprocal Rank Fusion. Filter by project, date, tool usage. Find anything in your history.</p>
+      </div>
+      <div class="feature">
+        <h3>Knowledge Extraction</h3>
+        <p>Automatically pulls out decisions, solutions, and error-to-fix patterns from every session.</p>
+      </div>
+      <div class="feature">
+        <h3>Session-Start Hook</h3>
+        <p>Auto-injects relevant project context when you start a new Claude Code session. No manual searching.</p>
+      </div>
+      <div class="feature">
+        <h3>Learnings System</h3>
+        <p>Clusters similar solutions across projects. High-scoring patterns become "learnings" that surface automatically.</p>
+      </div>
+      <div class="feature">
+        <h3>Team Knowledge</h3>
+        <p>Share extracted patterns with your team. When someone solves a problem, everyone's Claude knows about it.</p>
+      </div>
+      <div class="feature">
+        <h3>Privacy First</h3>
+        <p>100% local by default. No network calls unless you enable cloud sync. E2E encryption for team data.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Privacy Model</h2>
+    <div class="privacy-layers">
+      <div class="layer personal">
+        <div class="weight">1.0×</div>
+        <div class="info">
+          <div class="name">Your Memory</div>
+          <div class="desc">Your own session history. Always local. Always searched first. Always highest priority.</div>
+        </div>
+      </div>
+      <div class="layer team">
+        <div class="weight">0.7×</div>
+        <div class="info">
+          <div class="name">Team Knowledge</div>
+          <div class="desc">Shared patterns from your team. E2E encrypted. Opt-in. Only extracted patterns — never raw conversations.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pricing</h2>
+    <div class="pricing">
+      <div class="price-card">
+        <h3>Free</h3>
+        <div class="price">$0</div>
+        <div class="desc">Personal use</div>
+        <ul>
+          <li>500 knowledge entries</li>
+          <li>50 sessions indexed</li>
+          <li>All 7 MCP tools</li>
+          <li>Local search (unlimited)</li>
+          <li>Cloud sync</li>
+        </ul>
+        <a href="https://github.com/jhammant/claude-history-mcp" class="btn btn-outline">Get Started</a>
+      </div>
+      <div class="price-card featured">
+        <h3>Pro</h3>
+        <div class="price">$9<span>/mo</span></div>
+        <div class="desc">Power users</div>
+        <ul>
+          <li>10,000 knowledge entries</li>
+          <li>1,000 sessions indexed</li>
+          <li>All 7 MCP tools</li>
+          <li>Local search (unlimited)</li>
+          <li>Cloud sync</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" id="btn-pro">Subscribe</a>
+      </div>
+      <div class="price-card">
+        <h3>Team</h3>
+        <div class="price">$29<span>/mo</span></div>
+        <div class="desc">Share knowledge</div>
+        <ul>
+          <li>50,000 knowledge entries</li>
+          <li>10,000 sessions indexed</li>
+          <li>Up to 50 team members</li>
+          <li>Shared team knowledge</li>
+          <li>E2E encrypted sync</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" id="btn-team">Subscribe</a>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:14px;margin-top:16px;">Or <a href="https://github.com/jhammant/claude-history-cloud">self-host for free</a> (AGPL). No limits.</p>
+  </section>
+
+  <div class="cta">
+    <h2>Open Source</h2>
+    <p>Both repos are public. Use them however you want.</p>
+    <a href="https://github.com/jhammant/claude-history-mcp" class="btn btn-primary" style="margin-right:12px;">MCP Client (MIT)</a>
+    <a href="https://github.com/jhammant/claude-history-cloud" class="btn btn-outline">Cloud Server (AGPL)</a>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>Built by <a href="https://linkedin.com/in/jhammant">Jon Hammant</a>. MIT + AGPL.</p>
+  </div>
+</footer>
+
+</body>
+</html>
